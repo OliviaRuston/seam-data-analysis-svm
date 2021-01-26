@@ -1,36 +1,19 @@
 import pandas as pd
-import numpy as np
-import sklearn
-from sklearn.model_selection import train_test_split
-from sklearn import svm, metrics
+from sklearn import svm
+from sklearn.model_selection import cross_val_score
 
-torso = pd.read_csv('torso_design2_6.csv', encoding="utf-8", header = 0)
+# Read in csv into a dataframe
+seams = pd.read_csv('sample-torso-6.csv', encoding="utf-8", header = 0)
 
-target = torso.columns[-1]
-X = torso.drop(target, axis = 1)
-y = torso.drop(X, axis = 1)
+# Define features and targets
+target = seams.columns[-1]
+X = seams.drop(target, axis = 1)
+y = seams.drop(X, axis = 1)
 
-# List storing accuracies for different train-test splits
-thisList = list()
+# Classification algorithm set up
+clf = svm.SVC(kernel='rbf', C=1, random_state=42)
 
-# Create a svm Classifier
-clf = svm.SVC(kernel='rbf')  # Radial Basis Function Kernel
+# Uses 5-fold cross validation, scores prediction accuracy
+scores = cross_val_score(clf, X, y.to_numpy().ravel(), cv=5)
 
-# Loops through different train-test splits and stores accuracy in list
-for x in np.arange(0.1, 0.9, 0.1):
-    X_train, X_test, y_train, y_test = train_test_split(X, y.values.ravel(), test_size=x, random_state=109)
-
-    # Train the model using the training sets
-    clf.fit(X_train, y_train)
-
-    # Predict the response for test dataset
-    y_pred = clf.predict(X_test)
-
-    thisList.append(metrics.accuracy_score(y_test, y_pred))
-
-    # Model Accuracy: how often is the classifier correct?
-    # print("Accuracy:",metrics.accuracy_score(y_test, y_pred))
-
-# Loop through accuracy list
-for x in thisList:
-    print(x)
+print(scores)
